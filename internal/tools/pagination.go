@@ -36,17 +36,72 @@ func NewFixedSizePagingStrategy(pageSize int, workbook *excelize.File, sheetName
 		return nil, fmt.Errorf("sheet %s not found", sheetName)
 	}
 
-	// シートの次元情報を取得
+	// まずシートの次元情報を取得
 	dimension, err := workbook.GetSheetDimension(sheetName)
 	if err != nil {
 		return nil, err
 	}
 
+	// 次元情報から開始位置を取得
+	startCol, startRow, endCol, endRow, err := ParseRange(dimension)
+	if err != nil {
+		return nil, err
+	}
+
+	// データを含むセルを探すために、シートをスキャン
+	maxRow := endRow
+	maxCol := endCol
+
+	// 行方向のスキャン（最大1000行まで）
+	for row := endRow + 1; row <= 1000; row++ {
+		hasData := false
+		for col := startCol; col <= endCol; col++ {
+			cell, err := excelize.CoordinatesToCellName(col, row)
+			if err != nil {
+				continue
+			}
+			value, _ := workbook.GetCellValue(sheetName, cell)
+			if value != "" {
+				hasData = true
+				maxRow = row
+				break
+			}
+		}
+		if !hasData {
+			break
+		}
+	}
+
+	// 列方向のスキャン
+	for col := endCol + 1; col <= 26; col++ { // A-Z の範囲
+		hasData := false
+		for row := startRow; row <= maxRow; row++ {
+			cell, err := excelize.CoordinatesToCellName(col, row)
+			if err != nil {
+				continue
+			}
+			value, _ := workbook.GetCellValue(sheetName, cell)
+			if value != "" {
+				hasData = true
+				maxCol = col
+				break
+			}
+		}
+		if !hasData {
+			break
+		}
+	}
+
+	// 新しい次元情報を作成
+	startCell, _ := excelize.CoordinatesToCellName(startCol, startRow)
+	endCell, _ := excelize.CoordinatesToCellName(maxCol, maxRow)
+	newDimension := fmt.Sprintf("%s:%s", startCell, endCell)
+
 	return &FixedSizePagingStrategy{
 		pageSize:  pageSize,
 		workbook:  workbook,
 		sheetName: sheetName,
-		dimension: dimension,
+		dimension: newDimension,
 	}, nil
 }
 

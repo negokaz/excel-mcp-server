@@ -15,6 +15,9 @@ builds:
       - linux
       - windows
       - darwin
+    ignore:
+      - goos: windows
+        goarch: "386"
 
 upx:
   - enabled: "{{ not .IsSnapshot }}"

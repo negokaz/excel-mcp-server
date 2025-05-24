@@ -1,6 +1,6 @@
 {
   "name": "@negokaz/excel-mcp-server",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "An MCP server that reads and writes spreadsheet data to MS Excel file",
   "author": "negokaz",
   "license": "MIT",

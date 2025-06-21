@@ -81,7 +81,7 @@ func handleWriteToSheet(ctx context.Context, request mcp.CallToolRequest) (*mcp.
 	}
 
 	// zog が any type のスキーマをサポートしていないため、自力で実装
-	valuesArg, ok := request.Params.Arguments["values"].([]any)
+	valuesArg, ok := request.GetArguments()["values"].([]any)
 	if !ok {
 		return imcp.NewToolResultInvalidArgumentError("values must be a 2D array"), nil
 	}
